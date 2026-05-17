@@ -9,7 +9,28 @@
 * 🟢 You can import this file directly.
 */
 
+export const CommunityRole = {
+  OWNER: 'OWNER',
+  MODERATOR: 'MODERATOR',
+  MEMBER: 'MEMBER'
+} as const
+
+export type CommunityRole = (typeof CommunityRole)[keyof typeof CommunityRole]
 
 
-// This file is empty because there are no enums in the schema.
-export {}
+export const CommunityVisibility = {
+  PUBLIC: 'PUBLIC',
+  RESTRICTED: 'RESTRICTED',
+  PRIVATE: 'PRIVATE'
+} as const
+
+export type CommunityVisibility = (typeof CommunityVisibility)[keyof typeof CommunityVisibility]
+
+
+export const CommunityStatus = {
+  ACTIVE: 'ACTIVE',
+  BANNED: 'BANNED',
+  ARCHIVED: 'ARCHIVED'
+} as const
+
+export type CommunityStatus = (typeof CommunityStatus)[keyof typeof CommunityStatus]

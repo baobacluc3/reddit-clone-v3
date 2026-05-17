@@ -14,4 +14,101 @@ model User {
   username  String @unique
   password String
   createdAt DateTime @default(now())
+
+  communities     Community[]       // back-relation for Community.createdBy
+  communityMemberships CommunityMember[] // back-relation for CommunityMember.user
+  posts           Post[]            // back-relation for Post.author
+  comments        Comment[]         // back-relation for Comment.author
+  votes           Vote[]            // back-relation for Vote.user
+}
+
+enum CommunityRole {
+  OWNER
+  MODERATOR
+  MEMBER
+}
+
+
+enum CommunityVisibility {
+  PUBLIC
+  RESTRICTED
+  PRIVATE
+}
+
+enum CommunityStatus {
+  ACTIVE
+  BANNED
+  ARCHIVED
+}
+
+model Community {
+  id        Int      @id @default(autoincrement())
+  name        String   @unique
+  description String?
+  
+  visibility  CommunityVisibility @default(PUBLIC)
+  status      CommunityStatus @default(ACTIVE)
+
+  createdById Int
+  createdBy   User     @relation(fields: [createdById], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts       Post[]
+  members     CommunityMember[]
+
+  @@map("communities")
+}
+
+model CommunityMember {
+  user        User      @relation(fields: [userId], references: [id])
+  userId      Int
+  community   Community @relation(fields: [communityId], references: [id])
+  communityId Int
+
+  role CommunityRole @default(MEMBER)
+  joinedAt    DateTime  @default(now())
+  @@id([userId, communityId])
+}
+
+model Post {
+  id          Int       @id @default(autoincrement())
+  title       String
+  body        String?
+  createdAt   DateTime  @default(now())
+  author      User      @relation(fields: [userId], references: [id])
+  userId      Int
+  community   Community @relation(fields: [communityId], references: [id])
+  communityId Int
+  comments    Comment[]
+  votes       Vote[]
+}
+
+model Comment {
+  id        Int       @id @default(autoincrement())
+  body      String
+  createdAt DateTime  @default(now())
+  author    User      @relation(fields: [userId], references: [id])
+  userId    Int
+  post      Post      @relation(fields: [postId], references: [id])
+  postId    Int
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  parentId  Int?
+  replies   Comment[] @relation("CommentReplies")
+  votes     Vote[]
+}
+
+model Vote {
+  id        Int      @id @default(autoincrement())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int
+  post      Post?    @relation(fields: [postId], references: [id])
+  postId    Int?
+  comment   Comment? @relation(fields: [commentId], references: [id])
+  commentId Int?
+  value     Int      // 1 = upvote, -1 = downvote
+  
+   @@unique([userId, postId])
+  @@unique([userId, commentId])
 }
