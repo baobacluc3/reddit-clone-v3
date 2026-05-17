@@ -4,9 +4,13 @@ import { RegisterDto } from './dto/register.dto';
 import { emitWarning } from 'process';
 import * as bcrypt from 'bcrypt';
 import { LoginDto } from './dto/login.dto';
+import { JwtService } from '@nestjs/jwt';
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwtService: JwtService,
+  ) {}
 
   async register(dto: RegisterDto) {
     const existingUser = await this.prisma.user.findFirst({
@@ -37,7 +41,7 @@ export class AuthService {
   }
 
   async login(dto: LoginDto) {
-    const user = await this.prisma.findFirst({
+    const user = await this.prisma.user.findFirst({
       where: { email: dto.email },
     });
 
@@ -51,10 +55,15 @@ export class AuthService {
       throw new BadRequestException('email or password not correct');
     }
 
-    return {
-      id: user.id,
+    const payload = {
+      sub: user.id,
       email: user.email,
-      username: user.username,
+    };
+
+    const accessToken = await this.jwtService.signAsync(payload);
+
+    return {
+      accessToken,
     };
   }
 }
